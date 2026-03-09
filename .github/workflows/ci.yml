@@ -93,7 +93,7 @@ jobs:
     name: Deploy to Kubernetes
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.ref == 'refs/heads/main'  # Only deploy from main branch
+    if: github.ref == 'refs/heads/main' && vars.ENABLE_K8S_DEPLOY == 'true'  # Only deploy if enabled
     
     steps:
     - name: Checkout code
@@ -106,11 +106,42 @@ jobs:
 
     - name: Configure kubectl for Docker Desktop
       run: |
-        # Create kubeconfig for Docker Desktop (for demonstration)
-        # In production, use your actual cluster credentials
+        # Debug: Check if KUBE_CONFIG secret exists
+        if [ -z "${{ secrets.KUBE_CONFIG }}" ]; then
+          echo "❌ Error: KUBE_CONFIG secret is not set"
+          echo "Please add your kubeconfig as a GitHub secret"
+          echo "Run: kubectl config view --raw | base64 -w 0"
+          exit 1
+        fi
+        
+        # Create kubeconfig directory
         mkdir -p ~/.kube
-        echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
-        kubectl config current-context
+        
+        # Decode base64 with better error handling  
+        echo "🔧 Setting up kubeconfig..."
+        echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config 2>/dev/null || \
+        echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > ~/.kube/config 2>/dev/null || {
+          echo "❌ Error: Failed to decode KUBE_CONFIG"
+          echo "Debug info:"
+          echo "Secret length: $(echo '${{ secrets.KUBE_CONFIG }}' | wc -c)"
+          echo "First 50 chars: $(echo '${{ secrets.KUBE_CONFIG }}' | head -c 50)..."
+          echo ""
+          echo "💡 To fix this:"
+          echo "1. Get kubeconfig: kubectl config view --raw"  
+          echo "2. Encode it: kubectl config view --raw | base64 -w 0"
+          echo "3. Add as GitHub secret: KUBE_CONFIG"
+          exit 1
+        }
+        
+        # Verify the config file was created successfully
+        if [ ! -f ~/.kube/config ]; then
+          echo "❌ Error: Failed to create kubeconfig file"
+          exit 1
+        fi
+        
+        # Test kubectl connection
+        echo "🔍 Testing kubectl connection..."
+        kubectl config current-context || echo "⚠️  Warning: No current context set"
 
     - name: Update K8s manifest with new image
       run: |
