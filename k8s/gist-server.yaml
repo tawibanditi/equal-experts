@@ -5,7 +5,7 @@ metadata:
   labels:
     app: gist-server
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: gist-server
@@ -17,23 +17,11 @@ spec:
       containers:
       - name: gist-server
         # Use image from Docker Hub built by CI/CD pipeline
-        image: ${{ secrets.DOCKERHUB_USERNAME }}/gist-server:latest
-        imagePullPolicy: Always  # Always pull latest from registry
+        image: 8902146443188/gist-server:latest
+        imagePullPolicy: Never  # Critical for local development with Docker Desktop
         ports:
         - containerPort: 8080
           name: http
-        livenessProbe:
-          httpGet:
-            path: /octocat
-            port: 8080
-          initialDelaySeconds: 10
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /octocat
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 10
         resources:
           requests:
             cpu: 100m
