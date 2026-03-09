@@ -54,6 +54,7 @@ jobs:
           uses: actions/checkout@v4
 
         - name: Build Docker image
+          working-directory: ./gist-server
           run: docker build -t gist-server:${{github.sha}} -t gist-server:latest .
 
         - name: Switch to Docker-Desktop context
