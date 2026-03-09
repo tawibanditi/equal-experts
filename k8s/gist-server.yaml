@@ -17,7 +17,7 @@ spec:
       containers:
       - name: gist-server
         # Use image from Docker Hub built by CI/CD pipeline
-        image: 8902146443188/gist-server:latest
+        image: ${{ secrets.DOCKERHUB_USERNAME }}/gist-server:latest
         imagePullPolicy: Always  # Always pull latest from registry
         ports:
         - containerPort: 8080
