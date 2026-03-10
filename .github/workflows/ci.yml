@@ -24,6 +24,10 @@ jobs:
       with:
         python-version: '3.12'
 
+    - name: Install dependencies
+      working-directory: ./gist-server
+      run: pip install -r requirements.txt
+
     - name: Run unit tests
       working-directory: ./gist-server
       run: |
