@@ -46,7 +46,7 @@ jobs:
         sleep 3
         
         # Test the endpoint
-        curl -f http://localhost:8080/octocat || (kill $SERVER_PID && exit 1)
+        curl -f http://localhost:8080/metrics || (kill $SERVER_PID && exit 1)
         
         # Cleanup
         kill $SERVER_PID
