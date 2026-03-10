@@ -1,5 +1,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+import os
 import time
 import urllib.request
 import urllib.error
@@ -45,7 +46,11 @@ class GistHandler(BaseHTTPRequestHandler):
 
             username = parts[0]
             url = f'https://api.github.com/users/{username}/gists'
-            req = urllib.request.Request(url, headers={"User-Agent": "gist-server/1.0"})
+            headers = {"User-Agent": "gist-server/1.0"}
+            token = os.environ.get("GITHUB_TOKEN")
+            if token:
+                headers["Authorization"] = f"Bearer {token}"
+            req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, timeout=10) as resp:
                gists = json.loads(resp.read())
 
